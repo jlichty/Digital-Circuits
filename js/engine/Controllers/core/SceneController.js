@@ -16,6 +16,11 @@ export default (function(engineInstancePromise, Controller) {
 		this.addEventListener('onload', this, this.__onload);
 		this.addEventListener('onunload', this, this.__onunload);
 	};
+	SceneController.prototype.__validateSceneIsLoaded = function() {
+		if (!this.__scene) {
+			throw new Error(this.constructor.name + ':validateSceneIsLoaded - No scene has been loaded.')
+		}
+	};
 	SceneController.prototype.__onload = function() {
 		if (this.__scene) {
 			this.__scene.load();
@@ -37,9 +42,11 @@ export default (function(engineInstancePromise, Controller) {
 		this.__scene.load();
 	};
 	SceneController.prototype.addToCurrentScene = function(entity) {
+		this.__validateSceneIsLoaded();
 		this.__scene.add(entity);
 	};
 	SceneController.prototype.removeFromCurrentScene = function(entity) {
+		this.__validateSceneIsLoaded();
 		this.__scene.remove(entity);
 	};
 
