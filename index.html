@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+	
+	#stage {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		text-align: center;
+	}
+	
+	#game-canvas {
+		position: absolute;
+		top: 5%;
+		left: 50%;
+		width: 800px;
+		height: 600px;
+		transform: translate(-50%,0);
+		background-color: white;
+	}
+	
+</style>
+
+<head>
+
+	<script type="application/javascript" src="bower_components/traceur/traceur.js"></script>
+  	<script type="application/javascript" src="bower_components/system.js/dist/system.js"></script>
+
+	<script>
+		window.onload = function () {
+			// launch game
+			System.import('js/bootstrap.js');
+		};
+	</script>
+	
+	<title>Game</title>
+
+</head>
+
+<body bgcolor="black">
+	<div id="stage">
+		<canvas id="game-canvas"></canvas>
+	</div>
+</body>
+</html>
