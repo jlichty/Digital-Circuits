@@ -1,4 +1,4 @@
-export default (function(EventEmitter, Entity) {
+export default (function(EventEmitter, Entity, AtomicArray) {
 
     // CLASS Scene
     Scene.prototype = Object.create(EventEmitter.prototype);
@@ -6,43 +6,34 @@ export default (function(EventEmitter, Entity) {
 	function Scene() {
         EventEmitter.call(this);
 		// private variables
-		this.__contents = [];
+		this.__contents = new AtomicArray(Entity);
 		// configure load events
 		this.addEventListener('onload', this, this.__onload);
 		this.addEventListener('onunload', this, this.__onunload);
 	};
 	// private methods
 	Scene.prototype.__onload = function() {
-		for (var i = 0, L = this.__contents.length; i < L; i++) {
-			this.__contents[i].load();
-		}
+		this.__contents.forEach(function(element) {
+			element.load();
+		});
 	};
 	Scene.prototype.__onunload = function() {
-		for (var i = 0, L = this.__contents.length; i < L; i++) {
-			this.__contents[i].unload();
-		}
+		this.__contents.forEach(function(element) {
+			element.unload();
+		});
 	};
 	// public methods
-	Scene.prototype.add = function(/* entity1, entity2, entity3, etc... */) {
-		for (var i = 0, L = arguments.length; i < L; i++) {
-			var entity = arguments[i];
-			if (!(entity instanceof Entity)) {
-				throw new Error(this.constructor.name + ':add - Objects to be added must be an instance of Entity.');
-			}
-			this.__contents.push(entity);
-			entity.addEventListener('ondestroy', this, this.remove);
-			if (this.isLoaded) {
-				entity.load();
-			}
+	Scene.prototype.add = function(element) {
+		this.__contents.push(element);
+		element.addEventListener('ondestroy', this, this.remove);
+		if (this.isLoaded) {
+			element.load();
 		}
 	};
-	Scene.prototype.remove = function(/* entity1, entity2, entity3, etc... */) {
-		for (var i = 0, L = arguments.length; i < L; i++) {
-			var idx = this.__contents.indexOf(arguments[i]);
-			if (idx > -1) {
-				var entity = this.__contents.splice(idx, 1)[0];
-				entity.removeEventListener('ondestroy', this, this.remove);
-			}
+	Scene.prototype.remove = function(element) {
+		var removedElement = this.__contents.splice(element);
+		if (removedElement) {
+			removedElement.removeEventListener('ondestroy', this, this.remove);
 		}
 	};
 

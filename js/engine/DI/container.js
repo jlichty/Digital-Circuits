@@ -67,18 +67,27 @@ export function generateIoCContainer() {
 	$.Systems = {};
 	$.Controllers = {};
 
-
 	// Data
 	$.Data.Geometry = Data.Geometry();
 	$.Data.Graphics = Data.Graphics();
 	$.Data.Physics = Data.Physics();
 
-	// EventEmitter
-	$.Objects.EventEmitter = Objects.EventEmitter(
-		engineInstancePromise
+	// Objects
+	
+	// base
+	$.Objects.AtomicLink = Objects.AtomicLink();
+	$.Objects.AtomicArray = Objects.AtomicArray(
+		$.Objects.AtomicLink
+	);
+	$.Objects.AtomicKeyPairArray = Objects.AtomicKeyPairArray(
+		$.Objects.AtomicLink
 	);
 	
-	// Objects
+	// core
+	$.Objects.EventEmitter = Objects.EventEmitter(
+		engineInstancePromise,
+		$.Objects.AtomicKeyPairArray
+	);
 	$.Objects.Loader = Objects.Loader();
 	$.Objects.Tool = Objects.Tool();
 	$.Objects.Component = Objects.Component(
@@ -89,14 +98,18 @@ export function generateIoCContainer() {
 	);
 	$.Objects.Entity = Objects.Entity(
 		engineInstancePromise,
-		$.Objects.EventEmitter
+		$.Objects.EventEmitter,
+		$.Objects.Component,
+		$.Objects.AtomicArray
 	);
 	$.Objects.Repository = Objects.Repository(
-		$.Objects.EventEmitter
+		$.Objects.EventEmitter,
+		$.Objects.AtomicArray
 	);
 	$.Objects.Scene = Objects.Scene(
 		$.Objects.EventEmitter,
-		$.Objects.Entity
+		$.Objects.Entity,
+		$.Objects.AtomicArray
 	);
 	$.Objects.System = Objects.System(
 		$.Objects.EventEmitter

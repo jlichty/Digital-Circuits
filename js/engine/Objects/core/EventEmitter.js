@@ -1,59 +1,4 @@
-export default (function(engineInstancePromise) {
-
-    // Resolves the issue of traditional for-loops breaking from index instability when subscribers unsubscribe during the publish loop.
-    // Multiple callbacks can be pushed under the same subscriber
-    function DynamicallyShrinkableSubscriberArray() {
-        this.__contents = [];
-        this.__idx = 0;
-        this.__isExecutingForEach = false;
-    };
-    DynamicallyShrinkableSubscriberArray.prototype.__screenForDuplicates = function(subscriber, callback) {
-        if (this.__indexOf(subscriber, callback) > -1 ) {
-            throw new Error(this.constructor.name + ':validateForDuplicates - Duplicate entry found for subscriber ' + subscriber + '.');
-        }
-    };
-    DynamicallyShrinkableSubscriberArray.prototype.__indexOf = function(subscriber, callback) {
-        for (var i = 0, L = this.__contents.length; i < L; i++) {
-            var element = this.__contents[i];
-            if (element.subscriber === subscriber && element.callback === callback) {
-                return i;
-            }
-        }
-        return -1;
-    };
-    DynamicallyShrinkableSubscriberArray.prototype.forEach = function(fn) {
-        this.__isExecutingForEach = true;
-        while(this.__idx < this.__contents.length) {
-            var element = this.__contents[this.__idx];
-            fn(element.subscriber, element.callback);
-            this.__idx++;
-        }
-        this.__isExecutingForEach = false;
-        this.__idx = 0;
-    };
-    DynamicallyShrinkableSubscriberArray.prototype.push = function(subscriber, callback) {
-        this.__screenForDuplicates(subscriber, callback);
-        this.__contents.push({subscriber: subscriber, callback: callback});
-    };
-    DynamicallyShrinkableSubscriberArray.prototype.splice = function(subscriber, callback) {
-        var indexOfRemoval = this.__indexOf(subscriber, callback);
-        this.__contents.splice(indexOfRemoval, 1);
-        if (this.__isExecutingForEach && this.__idx >= indexOfRemoval) {
-            this.__idx -= 1;
-        }
-    };
-    DynamicallyShrinkableSubscriberArray.prototype.purge = function(subscriber) {
-        // remove all entries for subscriber
-        for (var i = 0, L = this.__contents.length; i < L; i++) {
-            var element = this.__contents[i];
-            if (element.subscriber === subscriber) {
-                this.__contents.splice(i, 1);
-                if (this.__isExecutingForEach && this.__idx >= i) {
-                    this.__idx -= 1;
-                }
-            }
-        }
-    };
+export default (function(engineInstancePromise, AtomicKeyPairArray) {
 
     var eventEmitterRepository;
 
@@ -78,7 +23,25 @@ export default (function(engineInstancePromise) {
     // private prototypal variables
     EventEmitter.prototype.__eventList = [];
     // private methods
-    EventEmitter.prototype.__implementEvents = function() {
+    EventEmitter.prototype.__validateEventIsImplemented = function(event) {
+        if (!this.hasEvent(event)) {
+            throw new Error(this.constructor.name + ':validateEventIsImplemented - ' + event + ' event is not implemented.');
+        }
+    };
+    EventEmitter.prototype.__validateSubscriber = function(subscriber) {
+        if (!subscriber) {
+            throw new Error(this.constructor.name + ':validateSubscriber - ' + ' A subscriber object must be supplied.');
+        }
+        if (Object.getOwnPropertyNames(subscriber).length === 0) {
+            throw new Error(this.constructor.name + ':validateSubscriber - ' + ' Subscribers cannot be empty objects.');
+        }
+    };
+    EventEmitter.prototype.__validateCallback = function(callback) {
+        if (typeof callback !== 'function') {
+            throw new Error(this.constructor.name + ':validateCallback - ' + ' A callback must be supplied as a function.');
+        }
+    };
+    EventEmitter.prototype.__implementEvents = function(/* event1, event2, etc. */) {
         for (var i = 0, L = arguments.length; i < L; i++) {
             var event = arguments[i];
             if (this.hasEvent(event)) {
@@ -88,9 +51,7 @@ export default (function(engineInstancePromise) {
         }
     };
     EventEmitter.prototype.__fire = function(event /*, argument1, argument2, etc... */) {
-        if (!this.hasEvent(event)) {
-            throw new Error(this.constructor.name + ':fire - ' + event + ' event is not implemented.');
-        }
+        this.__validateEventIsImplemented(event);
         if (this.__events[event]) {
             var args = arguments.length > 1 ? Array.prototype.slice.call(arguments, 1, arguments.length) : null;
             this.__events[event].forEach(function(subscriber, callback) {
@@ -100,30 +61,25 @@ export default (function(engineInstancePromise) {
     };
     // public methods
     EventEmitter.prototype.addEventListener = function(event, subscriber, callback) {
-        if (!this.hasEvent(event)) {
-            throw new Error(this.constructor.name + ':addEventListener - ' + event + ' event is not implemented.');
-        }
-        if (!subscriber) {
-            throw new Error(this.constructor.name + ':addEventListener - ' + ' A subscriber object must be supplied.');
-        }
-        if (Object.getOwnPropertyNames(subscriber).length === 0) {
-            throw new Error(this.constructor.name + ':addEventListener - ' + ' Subscribers cannot be empty objects.');
-        }
-        if (!callback) {
-            throw new Error(this.constructor.name + ':addEventListener - ' + ' A callback function must be supplied.');
-        }
+        this.__validateEventIsImplemented(event);
+        this.__validateSubscriber(subscriber);
+        this.__validateCallback(callback);
         if (!this.__events[event]) {
-            this.__events[event] = new DynamicallyShrinkableSubscriberArray();
+            this.__events[event] = new AtomicKeyPairArray();
         }
         this.__events[event].push(subscriber, callback);
     };
     EventEmitter.prototype.removeEventListener = function(event, subscriber, callback) {
+        this.__validateEventIsImplemented(event);
+        this.__validateSubscriber(subscriber);
+        this.__validateCallback(callback);
         this.__events[event].splice(subscriber, callback);
     };
     EventEmitter.prototype.purgeEventListenersBoundTo = function(subscriber) {
+        this.__validateSubscriber(subscriber);
         for (var event in this.__events) {
             if (this.__events.hasOwnProperty(event)) {
-                this.__events[event].purge(subscriber);
+                this.__events[event].purgeEntriesWithKey(subscriber);
             }
         }
     };

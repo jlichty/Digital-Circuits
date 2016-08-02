@@ -1,3 +1,4 @@
+// core
 import Component from './core/Component.js';
 
 import Controller from './core/Controller.js';
@@ -16,9 +17,19 @@ import System from './core/System.js';
 
 import Tool from './core/Tool.js';
 
+// misc
+import AtomicArray from './misc/AtomicArray.js';
+
+import AtomicKeyPairArray from './misc/AtomicKeyPairArray.js';
+
+import AtomicLink from './misc/AtomicLink.js';
+
 export default (function() {
 
     var objects = {
+        AtomicArray,
+        AtomicKeyPairArray,
+        AtomicLink,
         Component,
         Controller,
         Entity,
