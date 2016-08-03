@@ -1,4 +1,4 @@
-import {createEngineInstance} from '../engine/Engine.js';
+import {createEngineInstance} from '../engine/engine.js';
 import assets from './assets.js';
 import ui from './ui.js';
 import lab from './lab.js';
