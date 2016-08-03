@@ -1,6 +1,6 @@
-import Geometry from './core/Geometry';
-import Graphics from './core/Graphics';
-import Physics from './core/Physics';
+import Geometry from './core/Geometry.js';
+import Graphics from './core/Graphics.js';
+import Physics from './core/Physics.js';
 
 export default (function() {
 
