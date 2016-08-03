@@ -1,6 +1,5 @@
 in progress:
-- wireTool logic
-	- disallow multiple wires between the same two terminals
+
 	
 missing features:
 - lab scene
@@ -24,6 +23,7 @@ user experience:
 - 
 
 tech debt:
+- entity.create is verbose and annoying because it can't be included in a constructor without breaking subclass oninit listeners
 - code smell in scenes.js
 	- we have to rely on addEventListener 'oninit' for initializing scenes?
 - DI framework for engine-instance injection

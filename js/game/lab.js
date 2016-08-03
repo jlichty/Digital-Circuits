@@ -49,6 +49,7 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         var poseComponent = new Components.PoseComponent(new Geometry.Position(x, y), 0);
 
         this.addComponent(poseComponent);
+
     };
     $.ToolHandle = ToolHandle;
 
@@ -94,7 +95,7 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         // compose entity
         this.addComponent(poseComponent);
 
-        // initialize the terminal's location (must come after the PoseComponent has been added to the entity)
+        // initialize location
         this.addEventListener('oninit', this, this.__setPoseRelativeToCircuitElement);
     };
     TerminalWireAnchor.prototype.__setPoseRelativeToCircuitElement = function() {
@@ -157,7 +158,7 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         this.addComponent(meshComponent);
         this.addComponent(pickableComponent);
 
-        // initialize the terminal's location (must come after the PoseComponent has been added to the entity)
+        // initialize location
         this.addEventListener('oninit', this, this.__setPoseRelativeToCircuitElement);
     };
     Terminal.prototype.__setPoseRelativeToCircuitElement = function() {
@@ -333,7 +334,6 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
     function AndGate(x, y) {
 
         Gate.call(this, x, y);
-
     };
     $.AndGate = AndGate;
 
@@ -477,6 +477,8 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         // configure pick action
         pickableComponent.addEventListener('onpick', this, function() {
             var element = new circuitElementClass(position.x, position.y);
+            // create entity (add to current scene)
+            element.create();
             // place spawned element
             toolController.equip(tools.placingTool, element);
         });

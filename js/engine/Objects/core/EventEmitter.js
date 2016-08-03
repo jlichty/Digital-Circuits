@@ -88,37 +88,37 @@ export default (function(engineInstancePromise, AtomicKeyPairArray) {
     };
 
     // mixins
-    function Destructible(ClassPrototype) {
+    function Mortal(ClassPrototype) {
         var target = ClassPrototype || this;
         if (!(target instanceof EventEmitter)) {
-            throw new Error(Destructible.name + ':constructor - Target must be an instance of EventEmitter');
+            throw new Error(Mortal.name + ':constructor - Target must be an instance of EventEmitter');
         }
-        target.__isDestroyed = false;
+        target.__isAlive = false;
         Object.defineProperties(target, {
-            'isDestructible': {
+            'isAlive': {
                 get: function() {
-                    return true;
-                }
-            },
-            'isDestroyed': {
-                get: function() {
-                    return this.__isDestroyed;
+                    return this.__isAlive;
                 }
             }
         });
-        target.create = Destructible.prototype.create;
-        target.destroy = Destructible.prototype.destroy;
+        target.create = Mortal.prototype.create;
+        target.destroy = Mortal.prototype.destroy;
         target.__implementEvents(
+            'oncreate',
             'ondestroy'
         );
     };
-    Destructible.prototype.destroy = function() {
-        if (!this.__isDestroyed) {
-            this.__isDestroyed = true
+    Mortal.prototype.create = function() {
+        if (!this.__isAlive) {
+            this.__isAlive = true;
+            this.__fire('oncreate', this);
+        }
+    };
+    Mortal.prototype.destroy = function() {
+        if (this.__isAlive) {
+            this.__isAlive = false;
             this.__fire('ondestroy', this);
-            if (this.isLoaded) {
-                this.unload();
-            }
+            this.unload();
             eventEmitterRepository.release(this);
             eventEmitterRepository.purgeEventListenersBoundTo(this);
         }
@@ -179,7 +179,7 @@ export default (function(engineInstancePromise, AtomicKeyPairArray) {
     };
 
     EventEmitter.Mixins = {
-        Destructible,
+        Mortal,
         Loadable
     };
 

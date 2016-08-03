@@ -92,7 +92,9 @@ export default (function(engineInstancePromise, Tool, Components, Geometry, UI, 
 			// create wire between terminal and toolHandle
 			var position = toolController.lastCursorPosition;
 			toolHandle = new Lab.ToolHandle(position.x, position.y);
+			toolHandle.create();
 			intermediateWire = new Lab.Wire(terminal, toolHandle);
+			intermediateWire.create();
 			// select the terminal
 			var pickableComponent = equippedTerminal.getComponent(Components.PickableComponent);
 			pickableComponent.select();
@@ -118,9 +120,11 @@ export default (function(engineInstancePromise, Tool, Components, Geometry, UI, 
 			var entity = resolveFirstPick(toolController.getPicks());
 			if (entity instanceof Lab.InputTerminal) {
 				var wire = new Lab.Wire(equippedTerminal, entity);
+				wire.create();
 			}
 			if (entity instanceof Lab.OutputTerminal) {
 				var wire = new Lab.Wire(entity, equippedTerminal);
+				wire.create();
 			}
 			toolController.equip($.masterTool);
 		};

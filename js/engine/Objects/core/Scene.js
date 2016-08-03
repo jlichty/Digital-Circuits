@@ -31,10 +31,8 @@ export default (function(EventEmitter, Entity, AtomicArray) {
 		}
 	};
 	Scene.prototype.remove = function(element) {
-		var removedElement = this.__contents.splice(element);
-		if (removedElement) {
-			removedElement.removeEventListener('ondestroy', this, this.remove);
-		}
+		this.__contents.splice(element);
+		element.removeEventListener('ondestroy', this, this.remove);
 	};
 
 	// apply event mixins

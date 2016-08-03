@@ -18,7 +18,7 @@ export default (function(EventEmitter) {
 
     // apply event mixins
     EventEmitter.Mixins.Loadable.call(Component.prototype);
-    EventEmitter.Mixins.Destructible.call(Component.prototype);
+    EventEmitter.Mixins.Mortal.call(Component.prototype);
 
     return Component;
 

@@ -17,11 +17,10 @@ export default (function(engineInstancePromise, EventEmitter, Component, AtomicA
         this.__children = new AtomicArray(Entity);
         this.__components = new AtomicArray(Component);
         // configure event methods
+        this.addEventListener('oncreate', this, this.__oncreate);
         this.addEventListener('onload', this, this.__onload);
         this.addEventListener('onunload', this, this.__onunload);
         this.addEventListener('ondestroy', this, this.__ondestroy);
-        // store instance of entity
-        entityRepository.store(this);
     };
     // private methods
     Entity.prototype.__validateNoDuplicateComponentNames = function(component) {
@@ -30,6 +29,10 @@ export default (function(engineInstancePromise, EventEmitter, Component, AtomicA
                 throw new Error(this.constructor.name + ':validateNoDuplicateComponentNames - This entity already contains a ' + component.name + '.');
             }
         }, this);
+    };
+    Entity.prototype.__oncreate = function() {
+        // store instance of entity
+        entityRepository.store(this);
     };
     Entity.prototype.__onload = function() {
         // load components before loading children
@@ -101,7 +104,7 @@ export default (function(engineInstancePromise, EventEmitter, Component, AtomicA
 
     // apply event mixins
     EventEmitter.Mixins.Loadable.call(Entity.prototype);
-    EventEmitter.Mixins.Destructible.call(Entity.prototype);
+    EventEmitter.Mixins.Mortal.call(Entity.prototype);
 
     return Entity;
 

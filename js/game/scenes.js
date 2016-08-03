@@ -19,9 +19,20 @@ export default (function(engineInstancePromise, Scene, UI, Lab) {
             canvas.clientWidth,
             canvas.clientHeight
         );
+        designArea.create();
         
-        var andGateButton = new Lab.SpawnerButton(50, 40, Lab.AndGate)
-    
+        var andGateButton = new Lab.SpawnerButton(50, 40, Lab.AndGate);
+        andGateButton.create();
+
+        var nandGateButton = new Lab.SpawnerButton(100, 40, Lab.NandGate);
+        nandGateButton.create();
+
+        var orGateButton = new Lab.SpawnerButton(150, 40, Lab.OrGate);
+        orGateButton.create();
+
+        var xorGateButton = new Lab.SpawnerButton(200, 40, Lab.XorGate);
+        xorGateButton.create();
+
     });
 
     return $;
