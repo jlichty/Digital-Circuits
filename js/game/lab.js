@@ -1,4 +1,4 @@
-export default (function(engineInstancePromise, Entity, Components, Geometry, Graphics, UI) {
+export default (function(engineInstancePromise, Entity, Components, Geometry, Graphics, Physics, UI) {
 
     var $ = {}, toolController, tools, DISPLAYLAYERS;
 
@@ -7,6 +7,49 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         toolController = engine.toolController;
         DISPLAYLAYERS = engine.drawSystem.DISPLAYLAYERS;
     });
+
+    // tool Icons
+
+    // CLASS ToolIcon
+    ToolIcon.prototype = Object.create(Entity.prototype);
+    ToolIcon.prototype.constructor = ToolIcon;
+    function ToolIcon(x, y) {
+        Entity.call(this);
+
+         // pose
+        var position = new Geometry.Position(x, y);
+        var poseComponent = new Components.PoseComponent(position, 0);
+
+        // sprite
+        var spriteComponent = new Components.SpriteComponent(this.sprite);
+
+        // drawable on tool icon layer
+        var drawableComponent = new Components.DrawableComponent(DISPLAYLAYERS.TOOLICON);
+
+        // compose entity
+        this.addComponent(poseComponent);
+        this.addComponent(spriteComponent);
+        this.addComponent(drawableComponent);
+    };
+    $.ToolIcon = ToolIcon;
+
+    CutterIcon.prototype = Object.create(ToolIcon.prototype);
+    CutterIcon.prototype.constructor = CutterIcon;
+    function CutterIcon(x, y) {
+        
+        ToolIcon.call(this, x, y);
+
+    };
+    $.CutterIcon = CutterIcon;
+
+    TrashcanIcon.prototype = Object.create(ToolIcon.prototype);
+    TrashcanIcon.prototype.constructor = TrashcanIcon;
+    function TrashcanIcon(x, y) {
+        
+        ToolIcon.call(this, x, y);
+
+    };
+    $.TrashcanIcon = TrashcanIcon;
 
     // lab circuit design elements
 
@@ -28,14 +71,49 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         var lineComponent = new Components.LineComponent(
             tailObject.getComponent(Components.PoseComponent),
             headObject.getComponent(Components.PoseComponent),
-            new Graphics.LineStyleTemplate('#FFFFFF', 2)
+            new Graphics.LineStyleTemplate('#FFFFFF', 2),
+            new Physics.LineCollisionParameters(40, 0.9)
         );
+
+        var poseComponent = new Components.PoseComponent(lineComponent.position, lineComponent.orientation);
+        lineComponent.addEventListener('onpositionchange', this, this.__updatePickableMesh);
+        lineComponent.addEventListener('onorientationchange', this, this.__updatePickableMesh);
+
+        var meshComponent = new Components.MeshComponent(
+            lineComponent.mesh,
+            new Graphics.MeshStyleTemplate('#FFFFFF', null, 2)
+        );
+
+        var pickableComponent = new Components.PickableComponent();
+        pickableComponent.addEventListener('onmouseenter', this, this.__onmouseenter);
+        pickableComponent.addEventListener('onmouseleave', this, this.__onmouseleave);
 
         var drawableComponent = new Components.DrawableComponent(DISPLAYLAYERS.GAMEENTITIES);
 
         this.addComponent(lineComponent);
+        this.addComponent(poseComponent);
+        this.addComponent(meshComponent);
+        this.addComponent(pickableComponent);
         this.addComponent(drawableComponent);
 
+    };
+    Wire.prototype.__updatePickableMesh = function() {
+        // update poseComponent relative to lineComponent
+        var lineComponent = this.getComponent(Components.LineComponent);
+        var poseComponent = this.getComponent(Components.PoseComponent);
+        poseComponent.position = lineComponent.position;
+        poseComponent.orientation = lineComponent.orientation;
+        // update mesh
+        var meshComponent = this.getComponent(Components.MeshComponent);
+        meshComponent.mesh = lineComponent.mesh;
+    };
+    Wire.prototype.__onmouseenter = function() {
+        var meshComponent = this.getComponent(Components.MeshComponent);
+        meshComponent.style = new Graphics.MeshStyleTemplate('#FF5AC8', null, 2);
+    };
+    Wire.prototype.__onmouseleave = function() {
+        var meshComponent = this.getComponent(Components.MeshComponent);
+        meshComponent.style = new Graphics.MeshStyleTemplate('#FFFFFF', null, 2);
     };
     $.Wire = Wire;
 
@@ -74,14 +152,13 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
     };
     $.TerminalWire = TerminalWire;
 
-    // CLASS TerminalWireAnchor
-    TerminalWireAnchor.prototype = Object.create(LabElement.prototype);
-    TerminalWireAnchor.prototype.constructor = TerminalWireAnchor;
-    function TerminalWireAnchor(offsetPosition, circuitElement) {
-
+    // CLASS CircuitElementFeature
+    CircuitElementFeature.prototype = Object.create(LabElement.prototype);
+    CircuitElementFeature.prototype.constructor = CircuitElementFeature;
+    function CircuitElementFeature(relativeOffsetPosition, circuitElement) {
         LabElement.call(this);
 
-        this.offset = offsetPosition;
+        this.offset = relativeOffsetPosition;
         this.circuitElement = circuitElement;
 
         // pose
@@ -98,7 +175,7 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         // initialize location
         this.addEventListener('oninit', this, this.__setPoseRelativeToCircuitElement);
     };
-    TerminalWireAnchor.prototype.__setPoseRelativeToCircuitElement = function() {
+    CircuitElementFeature.prototype.__setPoseRelativeToCircuitElement = function() {
         var circuitElementPose = this.circuitElement.getComponent(Components.PoseComponent)
         var position = circuitElementPose.position;
         var orientation = circuitElementPose.orientation;
@@ -110,39 +187,30 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         poseComponent.position = new Geometry.Position(x, y);
         poseComponent.orientation = orientation;
     };
-    $.TerminalWireAnchor = TerminalWireAnchor;
-
-    // CLASS CircuitElementFeature
-    CircuitElementFeature.prototype = Object.create(LabElement.prototype);
-    CircuitElementFeature.prototype.constructor = CircuitElementFeature;
-    function CircuitElementFeature() {
-        LabElement.call(this);
-    };
     $.CircuitElementFeature = CircuitElementFeature;
+
+    // CLASS TerminalWireAnchor
+    TerminalWireAnchor.prototype = Object.create(CircuitElementFeature.prototype);
+    TerminalWireAnchor.prototype.constructor = TerminalWireAnchor;
+    function TerminalWireAnchor(relativeOffsetPosition, circuitElement) {
+
+        CircuitElementFeature.call(this, relativeOffsetPosition, circuitElement);
+
+    };
+    $.TerminalWireAnchor = TerminalWireAnchor;
 
     // CLASS Terminal
     Terminal.prototype = Object.create(CircuitElementFeature.prototype);
     Terminal.prototype.constructor = Terminal;
-    function Terminal(offsetPosition, circuitElement) {
+    function Terminal(relativeOffsetPosition, circuitElement) {
         
-        CircuitElementFeature.call(this);
-
-        this.offset = offsetPosition;
-        this.circuitElement = circuitElement;
-
-        // pose
-        var circuitElementPose = this.circuitElement.getComponent(Components.PoseComponent);
-        var poseComponent = new Components.PoseComponent(new Geometry.Position(0, 0), 0);
-
-        // configure circuitElement position following
-        circuitElementPose.addEventListener('onpositionchange', this, this.__setPoseRelativeToCircuitElement);
-        circuitElementPose.addEventListener('onorientationchange', this, this.__setPoseRelativeToCircuitElement);
+        CircuitElementFeature.call(this, relativeOffsetPosition, circuitElement);
 
         // entity is pickable
         var collisionBounds = new Geometry.Rectangle(20, 20);
         var mesh = new Geometry.Mesh(collisionBounds);
         var meshComponent = new Components.MeshComponent(mesh);
-        var pickableComponent = new Components.PickableComponent(meshComponent);
+        var pickableComponent = new Components.PickableComponent();
 
         // configure pick action
         pickableComponent.addEventListener('onpick', this, this.__onpick);
@@ -154,24 +222,8 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         pickableComponent.addEventListener('onmouseleave', this, this.__onmouseleave);
 
         // compose entity
-        this.addComponent(poseComponent);
         this.addComponent(meshComponent);
         this.addComponent(pickableComponent);
-
-        // initialize location
-        this.addEventListener('oninit', this, this.__setPoseRelativeToCircuitElement);
-    };
-    Terminal.prototype.__setPoseRelativeToCircuitElement = function() {
-        var circuitElementPose = this.circuitElement.getComponent(Components.PoseComponent)
-        var position = circuitElementPose.position;
-        var orientation = circuitElementPose.orientation;
-        var templateX = this.offset.x;
-        var templateY = this.offset.y;
-        var x = templateX*Math.cos(orientation) - templateY*Math.sin(orientation) + position.x;
-        var y = templateX*Math.sin(orientation) + templateY*Math.cos(orientation) + position.y;
-        var poseComponent = this.getComponent(Components.PoseComponent);
-        poseComponent.position = new Geometry.Position(x, y);
-        poseComponent.orientation = orientation;
     };
     Terminal.prototype.__onselect = function() {
         var spriteComponent = this.getComponent(Components.SpriteComponent);
@@ -205,10 +257,10 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
     // CLASS OutputTerminal
     OutputTerminal.prototype = Object.create(Terminal.prototype);
     OutputTerminal.prototype.constructor = OutputTerminal;
-    function OutputTerminal(offsetPosition, circuitElement) {
+    function OutputTerminal(relativeOffsetPosition, circuitElement) {
 
         // inherits from
-        Terminal.call(this, offsetPosition, circuitElement);
+        Terminal.call(this, relativeOffsetPosition, circuitElement);
 
         // modify parent to include OutputTerminal container
         if (!this.circuitElement.outputTerminals) {
@@ -233,10 +285,10 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
     // CLASS InputTerminal
     InputTerminal.prototype = Object.create(Terminal.prototype);
     InputTerminal.prototype.constructor = InputTerminal;
-    function InputTerminal(offsetPosition, circuitElement) {
+    function InputTerminal(relativeOffsetPosition, circuitElement) {
 
         // inherits from
-        Terminal.call(this, offsetPosition, circuitElement);
+        Terminal.call(this, relativeOffsetPosition, circuitElement);
 
         // modify parent to include OutputTerminal container
         if (!this.circuitElement.inputTerminals) {
@@ -450,38 +502,22 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
     };
     $.ToolbarElement = ToolbarElement;
 
-    // CLASS SpawnerButton
-    SpawnerButton.prototype = Object.create(ToolbarElement.prototype);
-    SpawnerButton.prototype.constructor = SpawnerButton;
-    function SpawnerButton(x, y, circuitElementClass) {
+    // CLASS button
+    Button.prototype = Object.create(ToolbarElement.prototype);
+    Button.prototype.constructor = Button;
+    function Button(x, y, sprite) {
         
         ToolbarElement.call(this);
 
-        // pose
-        var position = new Geometry.Position(x, y);
-        var poseComponent = new Components.PoseComponent(position, 0);
+        var poseComponent = new Components.PoseComponent(new Geometry.Position(x, y), 0);
 
-        // sprite
-        var sprite = circuitElementClass.prototype.sprite;
         var spriteComponent = new Components.SpriteComponent(sprite);
 
-        // configure sprite as graphic
         var drawableComponent = new Components.DrawableComponent(DISPLAYLAYERS.UIENTITIES);
 
-        // configure sprite as collision mesh
         var meshComponent = new Components.MeshComponent(spriteComponent.mesh);
 
-        // button is pickable
         var pickableComponent = new Components.PickableComponent();
-
-        // configure pick action
-        pickableComponent.addEventListener('onpick', this, function() {
-            var element = new circuitElementClass(position.x, position.y);
-            // create entity (add to current scene)
-            element.create();
-            // place spawned element
-            toolController.equip(tools.placingTool, element);
-        });
 
         // compose entity
         this.addComponent(poseComponent);
@@ -489,6 +525,45 @@ export default (function(engineInstancePromise, Entity, Components, Geometry, Gr
         this.addComponent(drawableComponent);
         this.addComponent(meshComponent);
         this.addComponent(pickableComponent);
+    };
+    $.Button = Button;
+
+    // CLASS ToolButton
+    ToolButton.prototype = Object.create(Button.prototype);
+    ToolButton.prototype.constructor = ToolButton;
+    function ToolButton(x, y, tool, ToolIconClass) {
+        
+        Button.call(this, x, y, ToolIconClass.prototype.sprite);
+
+        this.__tool = tool;
+
+        var pickableComponent = this.getComponent(Components.PickableComponent);
+        pickableComponent.addEventListener('onpick', this, this.__onpick);
+    };
+    ToolButton.prototype.__onpick = function() {
+        toolController.equip(this.__tool);
+    };
+    $.ToolButton = ToolButton;
+
+    // CLASS SpawnerButton
+    SpawnerButton.prototype = Object.create(Button.prototype);
+    SpawnerButton.prototype.constructor = SpawnerButton;
+    function SpawnerButton(x, y, circuitElementClass) {
+        
+        Button.call(this, x, y, circuitElementClass.prototype.sprite);
+
+        this.__circuitElementClass = circuitElementClass;
+
+        var pickableComponent = this.getComponent(Components.PickableComponent);
+        pickableComponent.addEventListener('onpick', this, this.__onpick);
+    };
+    SpawnerButton.prototype.__onpick = function() {
+        var position = (this.getComponent(Components.PoseComponent)).position;
+        var element = new this.__circuitElementClass(position.x, position.y);
+        // create entity (add to current scene)
+        element.create();
+        // place spawned element
+        toolController.equip(tools.placingTool, element);
     };
     $.SpawnerButton = SpawnerButton;
 
