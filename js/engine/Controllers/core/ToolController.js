@@ -1,4 +1,4 @@
-export default (function(engineInstancePromise, Controller) {
+export default (function(engineInstancePromise, Controller, Tool) {
 	
 	var inputSystem;
 
@@ -16,7 +16,7 @@ export default (function(engineInstancePromise, Controller) {
         this.__hovered = []; // mousehover pickables list
         this.__left = []; // mouseleave pickables list
         this.__picks = [];
-		this.__tool = null;
+		this.__tool = new Tool();
 		this.lastCursorPosition = null;
 		this.addEventListener('onload', this, this.__onload);
 		this.addEventListener('onunload', this, this.__onunload);
@@ -29,9 +29,6 @@ export default (function(engineInstancePromise, Controller) {
 		inputSystem.addEventListener('onclick', this, this.__onclick);
 		inputSystem.addEventListener('onkeydown', this, this.__onkeydown);
 		inputSystem.addEventListener('onkeyup', this, this.__onkeyup);
-		if (this.__tool) {
-			this.__tool.load();
-		}
 	};
 	ToolController.prototype.__onunload = function() {
 		inputSystem.removeEventListener('onmousemove', this, this.__onmousemove);
@@ -40,17 +37,20 @@ export default (function(engineInstancePromise, Controller) {
 		inputSystem.removeEventListener('onclick', this, this.__onclick);
 		inputSystem.removeEventListener('onkeydown', this, this.__onkeydown);
 		inputSystem.removeEventListener('onkeyup', this, this.__onkeyup);
-		if (this.__tool) {
-			this.__tool.unload();
-		}
 	};
 	ToolController.prototype.__onmousemove = function(cursor) {
 		this.lastCursorPosition = cursor;
 		this.__fire('onmousemove', cursor); // enqueues PickComponent event signals into __left, __hovered, __entered
 		this.__tool.mousemove(cursor);
-		this.__tool.mouseenter(this.__entered);
-		this.__tool.mousehover(this.__hovered);
-		this.__tool.mouseleave(this.__left);
+		if (this.__left.length > 0) {
+			this.__tool.mouseleave(this.__left);
+		}
+		if (this.__hovered.length > 0) {
+			this.__tool.mousehover(this.__hovered);
+		}
+		if (this.__entered.length > 0) {
+			this.__tool.mouseenter(this.__entered);
+		}
 		this.__entered = [];
         this.__hovered = [];
         this.__left = [];
@@ -79,6 +79,9 @@ export default (function(engineInstancePromise, Controller) {
 		this.__tool = tool;
 		this.__tool.equip(entity);
 		this.__fire('onequip', this.__tool.pickableEntityClassesList);
+		this.__entered = [];
+        this.__hovered = [];
+        this.__left = [];
 	};
 	ToolController.prototype.reequip = function() {
 		this.__fire('onequip', this.__tool.pickableEntityClassesList);
