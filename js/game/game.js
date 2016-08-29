@@ -30,6 +30,7 @@ export function createDigitalLogicGameInstance(canvas) {
 		engine.$.Components,
 		engine.$.Data.Geometry,
 		engine.$.Data.Graphics,
+		engine.$.Data.Physics,
 		engine.$.UI
 	);
 	

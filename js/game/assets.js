@@ -12,13 +12,13 @@ export default (function(Graphics, Lab) {
         new Graphics.SpriteSourcePair(Lab.NandGate.prototype, ['img/NandGate.png']),
         new Graphics.SpriteSourcePair(Lab.OrGate.prototype, ['img/OrGate.png']),
         new Graphics.SpriteSourcePair(Lab.XorGate.prototype, ['img/XorGate.png']),
-        new Graphics.SpriteSourcePair(Lab.PowerSource.prototype, ['img/PowerSource.png'])
+        new Graphics.SpriteSourcePair(Lab.PowerSource.prototype, ['img/PowerSource.png']),
         // new Graphics.SpriteSourcePair(Lab.PushSwitch.prototype, ['img/PushSwitch_open.png', 'img/PushSwitch_closed.png']),
         // new Graphics.SpriteSourcePair(Lab.HoverSwitch.prototype, ['img/HoverSwitch.png']),
         // new Graphics.SpriteSourcePair(Lab.LightBulb.prototype, ['img/LightBulb_open.png', 'img/LightBulb_closed.png']),
         // new Graphics.SpriteSourcePair(Lab.LightScreen.prototype, ['img/LightScreen_open.png', 'img/LightScreen_closed.png']),
-        // new Graphics.SpriteSourcePair(Lab.CutterIcon.prototype, ['img/Cutter_closed.png', 'img/Cutter_open.png']),
-        // new Graphics.SpriteSourcePair(Lab.TrashcanIcon.prototype, ['img/Trashcan.png'])
+        new Graphics.SpriteSourcePair(Lab.CutterIcon.prototype, ['img/CUTTER_CLOSED.png', 'img/CUTTER_OPEN.png']),
+        new Graphics.SpriteSourcePair(Lab.TrashcanIcon.prototype, ['img/TRASHCAN.png'])
     );
 
     return $;

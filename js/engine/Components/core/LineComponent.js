@@ -62,8 +62,8 @@ export default (function(Component, Geometry) {
 			get: function() {
 				var head = this.__headPose.position;
 				var tail = this.__tailPose.position;
-				var x = Math.abs(head.x - tail.x)/2;
-				var y = Math.abs(head.y - tail.y)/2;
+				var x = (head.x + tail.x)/2;
+				var y = (head.y + tail.y)/2;
 				return new Geometry.Position(x, y);
 			}
 		},
@@ -71,8 +71,11 @@ export default (function(Component, Geometry) {
 			get: function() {
 				var head = this.__headPose.position;
 				var tail = this.__tailPose.position;
-				var x = Math.abs(head.x - tail.x)/2;
-				var y = Math.abs(head.y - tail.y)/2;
+				var x = (head.x - tail.x)/2;
+				var y = (head.y - tail.y)/2;
+				if (x < 0) {
+					return Math.PI + Math.atan(y/x);
+				}
 				return Math.atan(y/x);
 			}
 		},

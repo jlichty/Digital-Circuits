@@ -55,10 +55,10 @@ export default (function(Component, Geometry, PoseComponent) {
 		this.__fire('onframechange');
 	};
 	SpriteComponent.prototype.nextFrame = function() {
-		setAnimationFrame(this.__currentFrameIndex + 1);
+		this.setFrame(this.__currentFrameIndex + 1);
 	};
 	SpriteComponent.prototype.previousFrame = function() {
-		setAnimationFrame(this.__currentFrameIndex - 1);
+		this.setFrame(this.__currentFrameIndex - 1);
 	};
 
 	// events

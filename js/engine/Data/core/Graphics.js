@@ -56,7 +56,7 @@ export default (function() {
 
     $.MeshStyleTemplate = function(strokeStyle, fillStyle, lineWidth) {
         this.strokeStyle = strokeStyle || 'black';
-        this.fillStyle = fillStyle;
+        this.fillStyle = fillStyle || null;
         this.lineWidth = lineWidth || 1;
     };
 

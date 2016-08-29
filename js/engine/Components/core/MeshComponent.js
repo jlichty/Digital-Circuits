@@ -50,8 +50,10 @@ export default (function(Component, Geometry, PoseComponent) {
 		ctx.strokeStyle = style.strokeStyle;
 		ctx.lineWidth = style.lineWidth;
 		ctx.stroke()
-		ctx.fillStyle = style.fillStyle;
-		ctx.fill();
+		if (style.fillStyle) {
+			ctx.fillStyle = style.fillStyle;
+			ctx.fill();
+		}
 		ctx.restore();
 	};
 	MeshComponent.prototype.__translate = function(newPosition, oldPosition) {
@@ -91,6 +93,14 @@ export default (function(Component, Geometry, PoseComponent) {
 				this.__translate(poseComponent.position, new Geometry.Position(0, 0));
 				this.__rotate(poseComponent.orientation);
 			}
+		},
+		'style': {
+			get: function() {
+				return this.__style;
+			},
+			set: function(meshStyleTemplate) {
+				this.__style = meshStyleTemplate;
+			}
 		}
 	});
 	// public methods
@@ -98,38 +108,22 @@ export default (function(Component, Geometry, PoseComponent) {
 
 	};
 	MeshComponent.prototype.checkPointCollision = function(point) {
-		var mesh = this.__mesh;
-		// find max/min x and y coordinates for a rectangle that bounds the entire mesh
-		var firstVertex = mesh.vertices[0];
-		var maxX = firstVertex.x, minX = firstVertex.x, maxY = firstVertex.y, minY = firstVertex.y;
-		for (var i = 1, L = mesh.vertices.length; i < L; i++) {
-			var vertex = mesh.vertices[i];
-			if (maxX < vertex.x) {
-				maxX = vertex.x;
-			}
-			if (minX > vertex.x) {
-				minX = vertex.x;
-			}
-			if (maxY < vertex.y) {
-				maxY = vertex.y;
-			}
-			if (minY > vertex.y) {
-				minY = vertex.y;
-			}
+		// ray-casting algorithm based on
+		// http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+
+		var x = point.x, y = point.y, vs = this.__mesh.vertices;
+
+		var isInside = false;
+		for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+			var xi = vs[i].x, yi = vs[i].y;
+			var xj = vs[j].x, yj = vs[j].y;
+
+			var intersect = ((yi > y) != (yj > y))
+				&& (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+			if (intersect) isInside = !isInside;
 		}
-		// check if we're inside bounding rectangle
-		if (point.x < maxX && point.x > minX && point.y < maxY && point.y > minY) {
-			// trace ray from point to (minX, minY) and from point to (maxX, maxY)
-			// if the number of intersections between a ray and the mesh's sides is odd --> collision detected
-			/*
-			var sides = [];
-			for (var i = 0, L = mesh.vertices.length - 1; i < L; i++) {
-				sides
-			}
-			*/
-			return true;
-		}
-		return false;
+
+		return isInside;
 	};
 
 	return MeshComponent;

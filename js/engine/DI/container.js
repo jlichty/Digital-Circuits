@@ -196,7 +196,8 @@ export function generateIoCContainer() {
 	);
 	$.Controllers.ToolController = Controllers.ToolController(
 		engineInstancePromise,
-		$.Objects.Controller
+		$.Objects.Controller,
+		$.Objects.Tool
 	);
 
     return IoCContainer;

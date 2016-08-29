@@ -23,7 +23,7 @@ export default (function(engineInstancePromise, EventEmitter, Component, AtomicA
         this.addEventListener('ondestroy', this, this.__ondestroy);
     };
     // private methods
-    Entity.prototype.__validateNoDuplicateComponentNames = function(component) {
+    Entity.prototype.__validateNoDuplicateComponents = function(component) {
         this.__components.forEach(function(ownedComponent) {
             if (ownedComponent.constructor.name === component.constructor.name) {
                 throw new Error(this.constructor.name + ':validateNoDuplicateComponentNames - This entity already contains a ' + component.name + '.');
@@ -64,7 +64,7 @@ export default (function(engineInstancePromise, EventEmitter, Component, AtomicA
     };
     // public methods
     Entity.prototype.addComponent = function(component) {
-        this.__validateNoDuplicateComponentNames(component);
+        this.__validateNoDuplicateComponents(component);
         if (!component.injectEntity(this)) {
             throw new Error(this.constructor.name + ':addComponent - Component configuration error: ' + component.constructor.name + ' has been configured for another entity.');
         }

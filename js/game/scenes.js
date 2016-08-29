@@ -1,9 +1,10 @@
 export default (function(engineInstancePromise, Scene, UI, Lab) {
     
-    var $ = {}, canvas;
+    var $ = {}, canvas, tools;
 
     engineInstancePromise.then(function(engine) {
         canvas = engine.canvas;
+        tools = engine.tools;
     });
 
     $.noScene = new Scene();
@@ -33,6 +34,11 @@ export default (function(engineInstancePromise, Scene, UI, Lab) {
         var xorGateButton = new Lab.SpawnerButton(200, 40, Lab.XorGate);
         xorGateButton.create();
 
+        var cutterButton = new Lab.ToolButton(700, 40, tools.cutterTool, Lab.CutterIcon);
+        cutterButton.create();
+
+        var trashcanButton = new Lab.ToolButton(750, 40, tools.trashTool, Lab.TrashcanIcon);
+        trashcanButton.create();
     });
 
     return $;

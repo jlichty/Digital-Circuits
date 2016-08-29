@@ -33,6 +33,7 @@ export default (function(engineInstancePromise, System) {
 		this.__fire('ondrawuibackground', ctx);
 		this.__fire('ondrawuiforeground', ctx);
 		this.__fire('ondrawuientities', ctx);
+		this.__fire('ondrawtoolicon', ctx);
 	};
 	DrawSystem.prototype.__onresize = function() {
 		/*
@@ -50,7 +51,8 @@ export default (function(engineInstancePromise, System) {
 		'ondrawgameentities',
 		'ondrawuibackground',
 		'ondrawuiforeground',
-		'ondrawuientities'
+		'ondrawuientities',
+		'ondrawtoolicon'
     );
 
 	// display layers
@@ -60,7 +62,8 @@ export default (function(engineInstancePromise, System) {
 		GAMEENTITIES: 'ondrawgameentities',
 		UIBACKGROUND: 'ondrawuibackground',
 		UIFOREGROUND: 'ondrawuiforeground',
-		UIENTITIES: 'ondrawuientities'
+		UIENTITIES: 'ondrawuientities',
+		TOOLICON: 'ondrawtoolicon'
 	};
 
 	return DrawSystem;
