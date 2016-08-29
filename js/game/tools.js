@@ -131,6 +131,103 @@ export default (function(engineInstancePromise, Tool, Components, Geometry, UI, 
 		return tool;
 	}());
 
+	$.cutterTool = (function() {
+		var tool = new Tool();
+		var icon, iconPoseComponent, iconSpriteComponent, offsetX = 27, offsetY = 32;
+		var isInitialized = false, isFirstMouseUpSkipped = false;
+		function init() {
+			icon = new Lab.CutterIcon(0, 0);
+			iconPoseComponent = icon.getComponent(Components.PoseComponent);
+			iconSpriteComponent = icon.getComponent(Components.SpriteComponent);
+			isInitialized = true;
+		};
+		tool.pickableEntityClassesList = [Lab.Wire];
+		tool.equip = function() {
+			if (!isInitialized) {
+				init();
+			}
+			iconPoseComponent.position = new Geometry.Position(
+				toolController.lastCursorPosition.x + offsetX,
+				toolController.lastCursorPosition.y + offsetY
+			);
+			icon.load();
+		};
+		tool.discard = function() {
+			icon.unload();
+			isFirstMouseUpSkipped = false;
+		};
+		tool.mousemove = function(cursor) {
+			iconPoseComponent.position = new Geometry.Position(
+				cursor.x + offsetX,
+				cursor.y + offsetY
+			);
+		};
+		tool.mouseup = function() {
+			if (!isFirstMouseUpSkipped) {
+				isFirstMouseUpSkipped = true;
+				return;
+			}
+			var wire = resolveFirstPick(toolController.getPicks());
+			if (wire) {
+				wire.destroy();
+			} else {
+				toolController.equip($.masterTool);
+			}
+		};
+		tool.mouseenter = function() {
+			iconSpriteComponent.nextFrame();
+		};
+		tool.mouseleave = function() {
+			iconSpriteComponent.nextFrame();
+		};
+		return tool;
+	}());
+
+	$.trashTool = (function() {
+		var tool = new Tool();
+		var icon, iconPoseComponent, offsetX = 27, offsetY = 32;
+		var isInitialized = false, isFirstMouseUpSkipped = false;;
+		function init() {
+			icon = new Lab.TrashcanIcon(0, 0);
+			iconPoseComponent = icon.getComponent(Components.PoseComponent);
+			isInitialized = true;
+		};
+		tool.pickableEntityClassesList = [Lab.CircuitElement];
+		tool.equip = function() {
+			if (!isInitialized) {
+				init();
+			}
+			iconPoseComponent.position = new Geometry.Position(
+				toolController.lastCursorPosition.x + offsetX,
+				toolController.lastCursorPosition.y + offsetY
+			);
+			icon.load();
+		};
+		tool.discard = function() {
+			icon.unload();
+			isFirstMouseUpSkipped = false;
+		};
+		tool.mousemove = function(cursor) {
+			iconPoseComponent.position = new Geometry.Position(
+				cursor.x + offsetX,
+				cursor.y + offsetY
+			);
+		};
+		tool.mouseup = function() {
+			if (!isFirstMouseUpSkipped) {
+				isFirstMouseUpSkipped = true;
+				return;
+			}
+			var circuitElement = resolveFirstPick(toolController.getPicks());
+			if (circuitElement) {
+				circuitElement.destroy();
+			} else {
+				toolController.equip($.masterTool);
+			}
+		};
+		return tool;
+	}());
+
 	function resolveFirstPick(picks) {
 		if (picks) {
 			if (picks.length) {
